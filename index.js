@@ -51,8 +51,11 @@ async function run(){
           res.send(result)
         })
 
-        app.post("/booking", (req, res) => {
-          
+        // booking 1 order
+        app.post("/booking", verifyJWT, async (req, res) => {
+          const booking = req.body
+          const result = await bookingCollection.insertOne(booking)
+          res.send(result)
         })
         // login time jwt token create & set in localStorage
         app.post('/login/:email', (req, res) =>{
