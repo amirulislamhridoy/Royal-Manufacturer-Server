@@ -4,13 +4,14 @@ const cors = require('cors')
 const port = process.env.PORT || 5000
 const bodyParser = require('body-parser')
 require('dotenv').config()
+const jwt = require('jsonwebtoken');
 
 app.use(cors())
 app.use(express.json())
 // app.use(bodyParser.json())
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = "mongodb+srv://Royal_Manufacturer:32202910@cluster0.wrjil.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wrjil.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run(){
@@ -29,8 +30,13 @@ async function run(){
           const {id} = req.params
           const query = {_id: ObjectId(id)}
           const result = await toolsCollection.findOne(query)
-          console.log(result)
           res.send(result)
+        })
+
+        app.post('/login/:email', (req, res) =>{
+          const email = req.body.email
+          const token = jwt.sign({ email }, process.env.PRIVATE_KEY, {expiresIn: '1h'});
+          res.send({token})
         })
     }finally{
         // await client.close()
