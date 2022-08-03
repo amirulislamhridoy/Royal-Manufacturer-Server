@@ -9,7 +9,7 @@ app.use(cors())
 app.use(express.json())
 // app.use(bodyParser.json())
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://Royal_Manufacturer:32202910@cluster0.wrjil.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -24,7 +24,14 @@ async function run(){
             const result = await cursor.toArray()
             res.send(result)
         })
-
+        // get single tools from toolsCollection
+        app.get('/tools/:id', async (req, res) => {
+          const {id} = req.params
+          const query = {_id: ObjectId(id)}
+          const result = await toolsCollection.findOne(query)
+          console.log(result)
+          res.send(result)
+        })
     }finally{
         // await client.close()
     }
