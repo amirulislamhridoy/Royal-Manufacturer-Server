@@ -17,6 +17,7 @@ async function run(){
     try{
         const toolsCollection = client.db('Royal_Manufacturer').collection('tools')
 
+        // get all tools
         app.get('/tools', async (req, res) => {
             const query = {}
             const cursor = toolsCollection.find(query)
