@@ -22,7 +22,7 @@ const verifyJWT = (req, res, next) => {
   const token = authHeader.split(' ')[1]
   jwt.verify(token, process.env.PRIVATE_KEY, function(err, decoded){
     if(err){
-      return res.status(403).message({message: "Forbidden"})
+      return res.status(403).send({message: "Forbidden"})
     }
     if(decoded){
       req.decoded = decoded
@@ -44,10 +44,17 @@ async function run(){
             res.send(result)
         })
         // get single tools from toolsCollection
-        app.get('/tools/:id', async (req, res) => {
+        app.get('/tools/:id', verifyJWT, async (req, res) => {
           const {id} = req.params
           const query = {_id: ObjectId(id)}
           const result = await toolsCollection.findOne(query)
+          res.send(result)
+        })
+        // get all booking for every single user
+        app.get('/booking', async (req, res) => {
+          const email = req.query.email
+          const query = {email}
+          const result = await bookingCollection.find(query).toArray()
           res.send(result)
         })
 
@@ -60,7 +67,7 @@ async function run(){
         // login time jwt token create & set in localStorage
         app.post('/login/:email', (req, res) =>{
           const email = req.body.email
-          const token = jwt.sign({ email }, process.env.PRIVATE_KEY, {expiresIn: '1h'});
+          const token = jwt.sign({ email }, process.env.PRIVATE_KEY, { expiresIn: '1h' });
           res.send({token})
         })
     }finally{
