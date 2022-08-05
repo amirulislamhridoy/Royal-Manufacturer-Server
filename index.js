@@ -5,14 +5,16 @@ const port = process.env.PORT || 5000
 const bodyParser = require('body-parser')
 require('dotenv').config()
 const jwt = require('jsonwebtoken');
+const stripe = require("stripe")(process.env.SECRET_KEY)
 
 app.use(cors())
 app.use(express.json())
 // app.use(bodyParser.json())
+app.use(express.static("public"));
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wrjil.mongodb.net/?retryWrites=true&w=majority`;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 })
 
 const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization
@@ -51,10 +53,18 @@ async function run(){
           res.send(result)
         })
         // get all booking for every single user
-        app.get('/booking', async (req, res) => {
+        app.get('/booking', verifyJWT,  async (req, res) => {
           const email = req.query.email
-          const query = {email}
-          const result = await bookingCollection.find(query).toArray()
+          const decoded = req.decoded
+          if(decoded.email === email){
+            const query = {email}
+            const result = await bookingCollection.find(query).toArray()
+            res.send(result)
+          }
+        })
+        app.get('/booking/:id', async (req, res) => {
+          const {id} = req.params
+          const result = await bookingCollection.findOne({_id: ObjectId(id)})
           res.send(result)
         })
 
@@ -69,6 +79,45 @@ async function run(){
           const email = req.body.email
           const token = jwt.sign({ email }, process.env.PRIVATE_KEY, { expiresIn: '1h' });
           res.send({token})
+        })
+        app.post("/create-payment-intent", async (req, res) => {
+          const currency = req.body.price
+          const price = currency * 100
+        
+          // Create a PaymentIntent with the order amount and currency
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: price,
+            currency: "eur",
+            automatic_payment_methods: {
+              enabled: true,
+            },
+          });
+        
+          res.send({
+            clientSecret: paymentIntent.client_secret,
+          });
+        });
+
+        app.patch('/payment/:id', async (req, res) => {
+          const {id} = req.params
+          const filter = {_id: ObjectId(id)}
+          const transactionId = req.body.transactionId
+
+          const updateDoc = {
+            $set: {
+              paid: true,
+              transactionId
+            }
+          }
+          const result = await bookingCollection.updateOne(filter,updateDoc)
+          res.send(result)
+        })
+        
+        app.delete('/delete/:id', async (req, res) => {
+          const id = req.params.id
+          const query = {_id: ObjectId(id)}
+          const result = await bookingCollection.deleteOne(query)
+          res.send(result)
         })
     }finally{
         // await client.close()
