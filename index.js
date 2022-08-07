@@ -37,6 +37,7 @@ async function run(){
     try{
         const toolsCollection = client.db('Royal_Manufacturer').collection('tools')
         const bookingCollection = client.db('Royal_Manufacturer').collection('booking')
+        const userCollection = client.db('Royal_Manufacturer').collection('user')
 
         // get all tools
         app.get('/tools', async (req, res) => {
@@ -67,18 +68,16 @@ async function run(){
           const result = await bookingCollection.findOne({_id: ObjectId(id)})
           res.send(result)
         })
+        app.get('/user', async (req, res) =>{
+          const result = await userCollection.find().toArray()
+          res.send(result)
+        })
 
         // booking 1 order
         app.post("/booking", verifyJWT, async (req, res) => {
           const booking = req.body
           const result = await bookingCollection.insertOne(booking)
           res.send(result)
-        })
-        // login time jwt token create & set in localStorage
-        app.post('/login/:email', (req, res) =>{
-          const email = req.body.email
-          const token = jwt.sign({ email }, process.env.PRIVATE_KEY, { expiresIn: '1h' });
-          res.send({token})
         })
         app.post("/create-payment-intent", async (req, res) => {
           const currency = req.body.price
@@ -112,7 +111,34 @@ async function run(){
           const result = await bookingCollection.updateOne(filter,updateDoc)
           res.send(result)
         })
+        // make admin from normal user
+        app.patch('/admin/:email', async (req, res) =>{
+          const email = req.params.email
+          const filter = {email}
+          const updateDoc = {
+            $set: {
+              role: 'admin'
+            }
+          }
+          const result = await userCollection.updateOne(filter, updateDoc)
+          res.send(result)
+        })
         
+        // login time jwt token create & set in localStorage
+        app.put('/login/:email', async (req, res) =>{
+          const email = req.body.email
+          const filter = {email}
+          const options = {upsert: true}
+
+          const updateDoc = {
+            $set: req.body
+          }
+          const result = await userCollection.updateOne(filter, updateDoc, options)
+
+          const token = jwt.sign({ email }, process.env.PRIVATE_KEY, { expiresIn: '1h' });
+          res.send({token, result})
+        })
+
         app.delete('/delete/:id', async (req, res) => {
           const id = req.params.id
           const query = {_id: ObjectId(id)}
