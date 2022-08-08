@@ -72,6 +72,12 @@ async function run(){
           const result = await userCollection.find().toArray()
           res.send(result)
         })
+        app.get('/admin/:email', async (req, res) => {
+          const email = req.params.email
+          const user = await userCollection.findOne({email})
+          const result = user?.role === 'admin'
+          res.json(result)
+        })
 
         // booking 1 order
         app.post("/booking", verifyJWT, async (req, res) => {
@@ -123,6 +129,17 @@ async function run(){
           const result = await userCollection.updateOne(filter, updateDoc)
           res.send(result)
         })
+        app.patch('/makeAdminFn', async (req, res) =>{
+          const email = req.query.email
+          const filter = {email}
+          const updateDoc = {
+            $set: {
+               role: null
+            }
+          }
+          const result = await userCollection.updateOne(filter, updateDoc)
+          res.send(result)
+        })
         
         // login time jwt token create & set in localStorage
         app.put('/login/:email', async (req, res) =>{
@@ -143,6 +160,12 @@ async function run(){
           const id = req.params.id
           const query = {_id: ObjectId(id)}
           const result = await bookingCollection.deleteOne(query)
+          res.send(result)
+        })
+        app.delete('/removeUser/:email', async (req, res) => {
+          const {email} = req.params
+          const query = {email: email}
+          const result = await userCollection.deleteOne(query)
           res.send(result)
         })
     }finally{
