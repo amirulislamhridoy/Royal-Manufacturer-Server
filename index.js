@@ -78,6 +78,10 @@ async function run(){
           const result = user?.role === 'admin'
           res.json(result)
         })
+        app.get('/orders', async (req, res) => {
+          const result = await bookingCollection.find().toArray()
+          res.send(result)
+        })
 
         // booking 1 order
         app.post("/booking", verifyJWT, async (req, res) => {
@@ -102,6 +106,12 @@ async function run(){
             clientSecret: paymentIntent.client_secret,
           });
         });
+        // add a tools
+        app.post('/addProduct', verifyJWT, async (req, res) => {
+          const tools = req.body
+          const result = await toolsCollection.insertOne(tools)
+          res.send(result)
+        })
 
         app.patch('/payment/:id', async (req, res) => {
           const {id} = req.params
@@ -118,7 +128,7 @@ async function run(){
           res.send(result)
         })
         // make admin from normal user
-        app.patch('/admin/:email', async (req, res) =>{
+        app.patch('/admin/:email', verifyJWT, async (req, res) =>{
           const email = req.params.email
           const filter = {email}
           const updateDoc = {
@@ -129,7 +139,7 @@ async function run(){
           const result = await userCollection.updateOne(filter, updateDoc)
           res.send(result)
         })
-        app.patch('/makeAdminFn', async (req, res) =>{
+        app.patch('/makeAdminFn', verifyJWT, async (req, res) =>{
           const email = req.query.email
           const filter = {email}
           const updateDoc = {
@@ -162,10 +172,16 @@ async function run(){
           const result = await bookingCollection.deleteOne(query)
           res.send(result)
         })
-        app.delete('/removeUser/:email', async (req, res) => {
+        app.delete('/removeUser/:email', verifyJWT, async (req, res) => {
           const {email} = req.params
           const query = {email: email}
           const result = await userCollection.deleteOne(query)
+          res.send(result)
+        })
+        app.delete('/removeOrder/:id', verifyJWT, async (req, res) => {
+          const id = req.params.id
+          const query = {_id: ObjectId(id)}
+          const result = await bookingCollection.deleteOne(query)
           res.send(result)
         })
     }finally{
