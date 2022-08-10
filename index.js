@@ -82,6 +82,12 @@ async function run(){
           const result = await bookingCollection.find().toArray()
           res.send(result)
         })
+        app.get('/profile/:email', async (req, res) => {
+          const email = req.params.email
+          const query = {email: email}
+          const result = await userCollection.findOne(query)
+          res.send(result)
+        })
 
         // booking 1 order
         app.post("/booking", verifyJWT, async (req, res) => {
@@ -146,6 +152,16 @@ async function run(){
             $set: {
                role: null
             }
+          }
+          const result = await userCollection.updateOne(filter, updateDoc)
+          res.send(result)
+        })
+        app.patch('/profileEdit/:email', async (req, res) => {
+          const {email} = req.params
+          const data = req.body
+          const filter = {email}
+          const updateDoc = {
+            $set: data
           }
           const result = await userCollection.updateOne(filter, updateDoc)
           res.send(result)
