@@ -68,7 +68,7 @@ async function run(){
           const result = await bookingCollection.findOne({_id: ObjectId(id)})
           res.send(result)
         })
-        app.get('/user', async (req, res) =>{
+        app.get('/user', verifyJWT, async (req, res) =>{
           const result = await userCollection.find().toArray()
           res.send(result)
         })
