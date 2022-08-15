@@ -103,6 +103,15 @@ async function run() {
       const result = await reviewCollection.find(query).toArray()
       res.send(result.reverse())
     })
+    app.get("/allTools", async (req, res) => {
+      const query = {};
+      const page = +(req.query.page)
+      const value = +(req.query.value)
+      const cursor = toolsCollection.find(query);
+      const count = await toolsCollection.estimatedDocumentCount()
+      const result = await cursor.skip(page * value).limit(value).toArray();
+      res.send({result, count});
+    });
 
     // booking 1 order
     app.post("/booking", verifyJWT, async (req, res) => {
