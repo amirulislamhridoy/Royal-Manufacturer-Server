@@ -99,8 +99,9 @@ async function run() {
       res.send(result);
     });
     app.get('/reviews', async (req, res) => {
-      const result = await reviewCollection.find().toArray()
-      res.send(result)
+      const query = {};
+      const result = await reviewCollection.find(query).toArray()
+      res.send(result.reverse())
     })
 
     // booking 1 order
