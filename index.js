@@ -84,7 +84,21 @@ async function run() {
       res.json(result);
     });
     app.get("/orders", async (req, res) => {
-      const result = await bookingCollection.find().toArray();
+      const all = req.query.all
+      const unpaid = req.query.unpaid
+      const paid = req.query.paid
+      const shift = req.query.shift
+      let query;
+      if(unpaid){
+        query = {status: 'unpaid'}
+      }else if(paid){
+        query = {status: 'paid'}
+      }else if(shift){
+        query = {status: 'shift'}
+      }else{
+        query = {}
+      }
+      const result = await bookingCollection.find(query).toArray();
       res.send(result);
     });
     app.get("/profile/:email", async (req, res) => {
@@ -162,7 +176,7 @@ async function run() {
 
       const updateDoc = {
         $set: {
-          paid: true,
+          status: 'paid',
           transactionId,
         },
       };
@@ -202,6 +216,18 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+    app.patch("/pendingToShift/:id", verifyJWT, async (req, res) => {
+      const { id } = req.params;
+      const filter = { _id: ObjectId(id) };
+
+      const updateDoc = {
+        $set: {
+          status: 'shift',
+        },
+      };
+      const result = await bookingCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
 
     // login time jwt token create & set in localStorage
     app.put("/login/:email", async (req, res) => {
