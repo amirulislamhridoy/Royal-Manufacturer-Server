@@ -95,7 +95,9 @@ async function run() {
     });
     // get all tools
     app.get("/manageTools", async (req, res) => {
-      const result = await bookingCollection.find().toArray();
+      const query = {}
+      const options = {sort: {name: 1}}
+      const result = await toolsCollection.find(query, options).toArray();
       res.send(result);
     });
     app.get('/reviews', async (req, res) => {
@@ -236,10 +238,10 @@ async function run() {
       const result = await bookingCollection.deleteOne(query);
       res.send(result);
     });
-    app.delete("/toolsBooking/:id", async (req, res) => {
+    app.delete("/toolsDelete/:id", async (req, res) => {
       const { id } = req.params;
       const query = { _id: ObjectId(id) };
-      const result = await bookingCollection.deleteOne(query);
+      const result = await toolsCollection.deleteOne(query);
       res.send(result);
     });
   } finally {
