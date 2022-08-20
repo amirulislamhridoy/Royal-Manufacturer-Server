@@ -2,6 +2,7 @@
 ## [https://royal-manufacturer.netlify.app/](https://royal-manufacturer.netlify.app/)
 ### [Royal Manufacturer Client Side Code](https://github.com/amirulislamhridoy/Royal_Manufacturer_Client.git)
 ### [Royal Manufacturer Client Server Code](https://github.com/amirulislamhridoy/Royal-Manufacturer-Server.git)
+admin : abc@gmail.com password: 32202910
 
 * Royal Manufacturer  has authorization (JWt) system for checking.
 * Verify authorization(JWT) is using by middleware function. For clean or no-reuse code.
